@@ -1,0 +1,105 @@
+{% extends 'baseBZPForm.html' %}
+
+{% block content %}
+{% load static %}
+<style>
+    .keyCabinetBox{
+        width: 700px;
+    }
+    .keyCabinetBox ul{
+        height: 430px;
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+    }
+    .keyCabinetBox li{
+        width: 135px;
+        height: 60px;
+        line-height: 60px;
+        text-align: center;
+        background-color: green;
+        border-radius: 3px;
+        /* margin-right: 5px; */
+        color: #FFF;
+        font-size: 20px;
+        cursor: pointer;
+    }
+    .keyCabinetBoxView{
+
+        background-color: goldenrod !important;
+        color: #FFF;
+        font-size: 22px !important;
+
+    }
+    .keyCabinetBox .keyCabinetTitle{
+        text-align: center;
+        line-height: 30px;
+        margin-bottom: 15px;
+        font-size: 20px;
+    }
+    .keyCabinetBox .keyCabinetTitle input{
+        text-align: center;
+    }
+</style>
+<form class="layui-form" lay-filter="layuiadmin-form-admin" id="layuiadmin-form-admin" style="padding: 20px 0 0 0;width: 100%;">
+    <div style="display: flex; justify-content: center;width: 100%;">
+        <div class="keyCabinetBox">
+            <div class="keyCabinetTitle">
+                <span id="placeText">钥匙柜：1号钥匙柜</span>
+            </div>
+            <ul>
+                <li val="1406-1A">1406-1号柜上</li><li val="1406-4A">1406-4号柜上</li><li val="1406-7A">1406-7号柜左</li><li val="1411-3A">1411-3号柜上</li><li val="1413-4A">1413-4号柜上</li>
+                <li val="1406-1B">1406-1号柜下</li><li val="1406-4B">1406-4号柜下</li><li val="1406-7B">1406-7号柜右</li><li val="1411-3B">1411-3号柜下</li><li val="1413-4B">1413-4号柜下</li>
+                <li val="1406-2A">1406-2号柜上</li><li val="1406-5A">1406-5号柜上</li><li val="1411-1A">1411-1号柜上</li><li val="1413-1A">1413-1号柜上</li><li val="1413-5A">1413-5号柜上</li>
+                <li val="1406-2B">1406-2号柜下</li><li val="1406-5B">1406-5号柜下</li><li val="1411-1B">1411-1号柜下</li><li val="1413-1B">1413-1号柜下</li><li val="1413-5B">1413-5号柜下</li>
+                <li val="1406-3A">1406-3号柜上</li><li val="1406-6A">1406-6号柜上</li><li val="1411-2A">1411-2号柜上</li><li val="1413-3A">1413-3号柜上</li><li val="1413-6A">1413-6号柜上</li>
+                <li val="1406-3B">1406-3号柜下</li><li val="1406-6B">1406-6号柜下</li><li val="1411-2A">1411-2号柜下</li><li val="1413-3B">1413-3号柜下</li><li val="1413-6B">1413-6号柜下</li>
+            </ul>
+        </div>
+        <div class="layui-form-item layui-hide">
+            <input type="button" lay-submit lay-filter="LAY-user-front-submit" id="LAY-user-front-submit" value="确认">
+        </div>
+    </div>
+</form>
+
+<script>
+    var index = parent.layer.getFrameIndex(window.name);
+    var staticPath="{% static '/' %}";
+    layui.use(['index', 'form'], function () {
+
+        var form = layui.form;
+
+        var place= localStorage.getItem("keyCabinetViewPlace").split('|');
+        if(place.length<2){
+            LayerErrorMsg("无法确定位置！");
+            return;
+        }
+        $("#placeText").text(place[0]);
+        $(".keyCabinetBox li[val="+place[1]+"]").addClass("keyCabinetBoxView");
+        console.log(+place[1]);
+        var openDoorList=[];
+        var waitOpenIndex=$(".keyCabinetBox li[val="+place[1]+"]").index()+1;
+        var loadIndex= LayerLoadMsg('获取状态...')
+        $.get("{% url 'cabinet:getOpenDoorList' %}", function (obj) {
+                openDoorList=obj.data
+                // alert(JSON.stringify(obj.data));
+                layer.close(loadIndex);
+                // alert(waitOpenIndex);
+                if(openDoorList.length>1||(openDoorList.length==1 && openDoorList[0]!=waitOpenIndex))
+                {
+                    LayerErrorMsg("请先关闭其它柜门,然后点击重新开门！");
+                    return;
+                }else{
+                    $.get("{% url 'cabinet:openDoor' %}",{doorIndex:waitOpenIndex}, function (obj) {
+                        LayerSuccessMsg("已打开");
+                    });
+                }
+        });
+        form.on('submit(LAY-user-front-submit)', function(obj){
+
+            return false;
+        });
+        
+    })
+</script>
+{% endblock %}

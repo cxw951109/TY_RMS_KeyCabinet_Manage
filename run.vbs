@@ -1,0 +1,1 @@
+CreateObject("WScript.Shell").Run"cmd /c C:\TY_RMS_KeyCabinet_Manage\run.bat",0
